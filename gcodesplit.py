@@ -1,5 +1,5 @@
 def split():
-        sourcefile = "Gcode/box300x100.gcode"
+        sourcefile = "Gcode/3Dtryout02-4mm.gcode"
         file1 = "Gcode/one.gcode"
         file2 = "Gcode/two.gcode"
         startcode = "Gcode/startcode.gcode"
