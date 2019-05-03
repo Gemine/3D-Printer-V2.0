@@ -52,6 +52,8 @@ class virtualPrinter(threading.Thread):
 	gCodeSend = ""
 	PositionFromGcodeRecive = [0,0]
 	currentPosition = [0,0]
+	numberOfLayer = 1
+	zPosition = 0
 	connection = None
 	port = "COM1"
 	baudrate = 115200
@@ -93,6 +95,10 @@ class virtualPrinter(threading.Thread):
 	def getNumberOfGcodeLine(self):
 		self.gcodeDataLen = len(self.gcodeData)
 		pass
+	
+	def getZPosition(self,Gcode):
+		a = re.search(r"\bZ(\d*.\d*)",x)
+		return a[1]
 	def getPositionFromGcodeRecive(self):
 		try:
 			Gcode = re.split(r"\s",self.gCodeRecive)
@@ -103,6 +109,18 @@ class virtualPrinter(threading.Thread):
 				self.PositionFromGcodeRecive[0] = self.num(Gcode[1][1:])
 			if Gcode[2][0] == 'Y':
 				self.PositionFromGcodeRecive[1] = self.num(Gcode[2][1:])
+		if 'Z' in Gcode:
+			#get Z variale
+			zData = self.getZPosition(self.gCodeRecive)
+			#compare to current z
+			if float(zData[1]) > self.zPosition:
+				self.numberOfLayer = self.numberOfLayer + 1
+				self.zPosition = float(zData[1])
+			elif float(zData[1]) < self.zPosition:
+				self.numberOfLayer = self.numberOfLayer - 1
+				self.zPosition = float(zData[1])
+			else:
+				self.zPosition = float(zData[1])
 		return self.PositionFromGcodeRecive
 
 	def caculateDistanceToPoint(self,point):
@@ -180,6 +198,8 @@ class typeOnePrinter(virtualPrinter):
 	gCodeRecive = ""
 	gCodeSend = ""
 	PositionFromGcodeRecive = currentPosition
+	numberOfLayer = 1
+	zPosition = 0
 	connection = None
 	port = "COM7"
 	baudrate = 115200
@@ -211,7 +231,7 @@ class typeOnePrinter(virtualPrinter):
 		pass
 	def run(self):
 		# check priority situation
-		while self.orderGcodeLine < self.gcodeDataLen:
+		while self.orderGcodeLine < self.gcodeDataLen + 1:
 			#start lock
 			lockOne.acquire()
 			if self.isPrioritysitutation(priorityEvent.is_set()):
@@ -282,6 +302,8 @@ class typeTwoPrinter(virtualPrinter):
 	gCodeRecive = ""
 	gCodeSend = ""
 	PositionFromGcodeRecive = currentPosition
+	numberOfLayer = 1
+	zPosition = 0
 	connection = None
 	port = "COM8"
 	baudrate = 115200
@@ -296,12 +318,26 @@ class typeTwoPrinter(virtualPrinter):
 		
 	def run(self):
 		#read n-th Gcode Line in file
-			while self.orderGcodeLine < self.gcodeDataLen:
+			while self.orderGcodeLine < self.gcodeDataLen + 1:
 				#start lock
 				lockOne.acquire()
 				self.getGcodeLine()
 				#get position from gcode recive
 				self.getPositionFromGcodeRecive()
+				#z synchronous
+				if (self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
+					while(self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
+						# goto X0Y0
+						self.sendGcode("G0 X0 Y0")
+						saveposition = self.currentPosition
+						self.updateCurrentPosition([0,0])
+						self.sendGcode("M400")
+						lockOne.release()
+					#comeback
+					print("2 ---machine 2 comeback")
+					self.sendGcode("G0 X{} Y{}".format(saveposition[0],saveposition[1]))
+					self.updateCurrentPosition(saveposition)
+				lockOne.acquire()
 				#caculate distance to current other machine position
 				print("2 ---position from Gcode",self.PositionFromGcodeRecive)
 				print("2 ---One position",self.firstFriendPrinter.getCurrentPosition())
@@ -330,6 +366,20 @@ class typeTwoPrinter(virtualPrinter):
 						self.getGcodeLine()
 						#get position from gcode recive
 						self.getPositionFromGcodeRecive()
+						#z synchronous
+						if (self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
+							while(self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
+								# goto X0Y0
+								self.sendGcode("G0 X0 Y0")
+								saveposition = self.currentPosition
+								self.updateCurrentPosition([0,0])
+								self.sendGcode("M400")
+								lockOne.release()
+							#comeback
+							print("2 ---machine 2 comeback")
+							self.sendGcode("G0 X{} Y{}".format(saveposition[0],saveposition[1]))
+							self.updateCurrentPosition(saveposition)
+						lockOne.acquire()
 						#caculate distance to current other machine position
 						print("2 ---position from Gcode",self.PositionFromGcodeRecive)
 						print("2 ---One position",self.firstFriendPrinter.getCurrentPosition())
