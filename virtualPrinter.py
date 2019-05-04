@@ -109,7 +109,7 @@ class virtualPrinter(threading.Thread):
 				self.PositionFromGcodeRecive[0] = self.num(Gcode[1][1:])
 			if Gcode[2][0] == 'Y':
 				self.PositionFromGcodeRecive[1] = self.num(Gcode[2][1:])
-		if 'Z' in Gcode:
+		if "Z" in x and not re.search(r"\A;",x):
 			#get Z variale
 			zData = self.getZPosition(self.gCodeRecive)
 			#compare to current z
@@ -321,15 +321,14 @@ class typeTwoPrinter(virtualPrinter):
 		#read n-th Gcode Line in file
 			while self.orderGcodeLine < self.gcodeDataLen:
 				#start lock
-				print("a1")
 				lockOne.acquire()
 				self.getGcodeLine()
 				#get position from gcode recive
 				self.getPositionFromGcodeRecive()
-				print("a2")
-				#z synchronous
+				print("2-numberLayer: ",self.numberOfLayer)
+				print("1-numberLayer: ",self.firstFriendPrinter.numberOfLayer)
+				# Z synchronous
 				if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
-					print('a3')
 					while(self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
 						# goto X0Y0
 						self.sendGcode("G0 X0 Y0")
@@ -358,7 +357,6 @@ class typeTwoPrinter(virtualPrinter):
 						lockOne.release()
 						# check whether machine one gone to priority position
 						reachPriorityPosition.wait()
-						
 						self.updateCurrentPosition(self.PositionFromGcodeRecive)
 						print("2 ---Two gcode Sended",self.PositionFromGcodeRecive)
 						#send gcode
@@ -366,13 +364,14 @@ class typeTwoPrinter(virtualPrinter):
 						self.sendGcode("M400")
 						#increase order gcode line
 						self.increaseOrderGcodeLine()
-						
 						#start lock
 						lockOne.acquire()
 						self.getGcodeLine()
 						#get position from gcode recive
 						self.getPositionFromGcodeRecive()
-						#z synchronous
+						# Z synchronous
+						print("2-numberLayer: ",self.numberOfLayer)
+						print("1-numberLayer: ",self.firstFriendPrinter.numberOfLayer)
 						if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
 							print("a")
 							while((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
