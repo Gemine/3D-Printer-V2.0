@@ -97,7 +97,7 @@ class virtualPrinter(threading.Thread):
 		pass
 	
 	def getZPosition(self,Gcode):
-		a = re.search(r"\bZ(\d*.\d*)",x)
+		a = re.search(r"\bZ(\d*.\d*)",Gcode)
 		return a[1]
 	def getPositionFromGcodeRecive(self):
 		try:
@@ -146,7 +146,7 @@ class virtualPrinter(threading.Thread):
 		pass
 	def parking(self):
 		# M125 or M27
-		self.sendGcode("G1 X200 Y200")
+		self.sendGcode("G1 X200 Y220")
 		self.sendGcode("M400")
 	
 	def comeBack(self):
@@ -190,7 +190,7 @@ class typeOnePrinter(virtualPrinter):
 	
 	################### typeOnePrinter Variable ######################
 	priority = False
-	currentPosition = [200,225]
+	currentPosition = [200,220]
 	dirGcodeFile = ""
 	gcodeData = []
 	gcodeDataLen = 0
@@ -231,7 +231,7 @@ class typeOnePrinter(virtualPrinter):
 		pass
 	def run(self):
 		# check priority situation
-		while self.orderGcodeLine < self.gcodeDataLen + 1:
+		while self.orderGcodeLine < self.gcodeDataLen:
 			#start lock
 			lockOne.acquire()
 			if self.isPrioritysitutation(priorityEvent.is_set()):
@@ -247,6 +247,7 @@ class typeOnePrinter(virtualPrinter):
 				#Comeback
 				print("1 ---machine 1 comeback")
 				self.sendGcode("G0 X{} Y{}".format(self.currentPosition[0],self.currentPosition[1]))
+				self.sendGcode("M400")
 				#clear comeback event
 				comeBackEvent.clear()
 				#lockOne.release()
@@ -318,14 +319,17 @@ class typeTwoPrinter(virtualPrinter):
 		
 	def run(self):
 		#read n-th Gcode Line in file
-			while self.orderGcodeLine < self.gcodeDataLen + 1:
+			while self.orderGcodeLine < self.gcodeDataLen:
 				#start lock
+				print("a1")
 				lockOne.acquire()
 				self.getGcodeLine()
 				#get position from gcode recive
 				self.getPositionFromGcodeRecive()
+				print("a2")
 				#z synchronous
-				if (self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
+				if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
+					print('a3')
 					while(self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
 						# goto X0Y0
 						self.sendGcode("G0 X0 Y0")
@@ -333,11 +337,13 @@ class typeTwoPrinter(virtualPrinter):
 						self.updateCurrentPosition([0,0])
 						self.sendGcode("M400")
 						lockOne.release()
+						print("a1")
 					#comeback
 					print("2 ---machine 2 comeback")
 					self.sendGcode("G0 X{} Y{}".format(saveposition[0],saveposition[1]))
+					self.sendGcode("M400")
 					self.updateCurrentPosition(saveposition)
-				lockOne.acquire()
+					lockOne.acquire()
 				#caculate distance to current other machine position
 				print("2 ---position from Gcode",self.PositionFromGcodeRecive)
 				print("2 ---One position",self.firstFriendPrinter.getCurrentPosition())
@@ -367,19 +373,22 @@ class typeTwoPrinter(virtualPrinter):
 						#get position from gcode recive
 						self.getPositionFromGcodeRecive()
 						#z synchronous
-						if (self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
-							while(self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
+						if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
+							print("a")
+							while((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
 								# goto X0Y0
 								self.sendGcode("G0 X0 Y0")
 								saveposition = self.currentPosition
 								self.updateCurrentPosition([0,0])
 								self.sendGcode("M400")
 								lockOne.release()
+								print("a1")
 							#comeback
 							print("2 ---machine 2 comeback")
 							self.sendGcode("G0 X{} Y{}".format(saveposition[0],saveposition[1]))
+							self.sendGcode("M400")
 							self.updateCurrentPosition(saveposition)
-						lockOne.acquire()
+							lockOne.acquire()
 						#caculate distance to current other machine position
 						print("2 ---position from Gcode",self.PositionFromGcodeRecive)
 						print("2 ---One position",self.firstFriendPrinter.getCurrentPosition())
@@ -409,5 +418,6 @@ class typeTwoPrinter(virtualPrinter):
 					print("2 ---Running in normal process")
 					#send Gocde to machine
 					self.sendGcode(self.gCodeRecive)
+					self.sendGcode("M400")
 					#increase Gcode line number
 					self.increaseOrderGcodeLine()

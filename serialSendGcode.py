@@ -98,8 +98,8 @@ class serialSendGcode:
 
 		self.ser.write(block.encode() + b"\n")
 		self.read("ok")
-		self.ser.write("M400".encode()+ b"\n")
-		self.read("ok")
+		#self.ser.write("M400".encode()+ b"\n")
+		#self.read("ok")
 
 	def read(self, expect=None):
 		"""

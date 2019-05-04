@@ -20,7 +20,7 @@ for i in range(0):
 # Name for Printer 1
 nameOne = "onePrinter"
 # Gcode file direction
-gcodeOneDir = "Gcode/one"
+gcodeOneDir = "Gcode/one.gcode"
 # Serial connection port and baudrate
 portOne = 'COM7'
 baudrateOne = 115200
@@ -31,7 +31,7 @@ baudrateOne = 115200
 #Name for Printer 2
 nameTwo = "twoPrinter"
 # Gcode file direction
-gcodeTwoDir = "Gcode/two"
+gcodeTwoDir = "Gcode/two.gcode"
 # Serial connection port and baudrate
 portTwo = 'COM8'
 baudrateTwo = 115200
