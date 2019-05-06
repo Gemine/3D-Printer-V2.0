@@ -53,7 +53,7 @@ class virtualPrinter(threading.Thread):
 	PositionFromGcodeRecive = [0,0]
 	currentPosition = [0,0]
 	numberOfLayer = 1
-	zPosition = 0
+	zPosition = 0.0
 	connection = None
 	port = "COM1"
 	baudrate = 115200
@@ -98,7 +98,7 @@ class virtualPrinter(threading.Thread):
 	
 	def getZPosition(self,Gcode):
 		a = re.search(r"\bZ(\d*.\d*)",Gcode)
-		return a[1]
+		return float(a[1])
 	def getPositionFromGcodeRecive(self):
 		try:
 			Gcode = re.split(r"\s",self.gCodeRecive)
@@ -109,18 +109,19 @@ class virtualPrinter(threading.Thread):
 				self.PositionFromGcodeRecive[0] = self.num(Gcode[1][1:])
 			if Gcode[2][0] == 'Y':
 				self.PositionFromGcodeRecive[1] = self.num(Gcode[2][1:])
-		if "Z" in x and not re.search(r"\A;",x):
+		if "Z" in self.gCodeRecive and not re.search(r"\A;",self.gCodeRecive):
 			#get Z variale
+			print("i get z########################################")
 			zData = self.getZPosition(self.gCodeRecive)
 			#compare to current z
-			if float(zData[1]) > self.zPosition:
+			if (zData) > self.zPosition:
 				self.numberOfLayer = self.numberOfLayer + 1
-				self.zPosition = float(zData[1])
-			elif float(zData[1]) < self.zPosition:
+				self.zPosition = (zData)
+			elif (zData) < self.zPosition:
 				self.numberOfLayer = self.numberOfLayer - 1
-				self.zPosition = float(zData[1])
+				self.zPosition = (zData)
 			else:
-				self.zPosition = float(zData[1])
+				self.zPosition = (zData)
 		return self.PositionFromGcodeRecive
 
 	def caculateDistanceToPoint(self,point):
@@ -199,7 +200,7 @@ class typeOnePrinter(virtualPrinter):
 	gCodeSend = ""
 	PositionFromGcodeRecive = currentPosition
 	numberOfLayer = 1
-	zPosition = 0
+	zPosition = 0.0
 	connection = None
 	port = "COM7"
 	baudrate = 115200
@@ -233,7 +234,10 @@ class typeOnePrinter(virtualPrinter):
 		# check priority situation
 		while self.orderGcodeLine < self.gcodeDataLen:
 			#start lock
-			lockOne.acquire()
+			try:
+				lockOne.acquire()
+			except:
+				print("Lock are locked 1")
 			if self.isPrioritysitutation(priorityEvent.is_set()):
 				#if priority situation is true
 				#Run in priority process
@@ -241,7 +245,10 @@ class typeOnePrinter(virtualPrinter):
 				self.parking()
 				#emit gone to priority envent
 				reachPriorityPosition.set()
-				lockOne.release()
+				try:
+					lockOne.release()
+				except:
+					print("Lock are release 1")
 				comeBackEvent.wait()
 				#lockOne.acquire()
 				#Comeback
@@ -269,7 +276,10 @@ class typeOnePrinter(virtualPrinter):
 				if self.checkCollision(D1):
 					
 					# release lock
-					lockOne.release()
+					try:
+						lockOne.release()
+					except:
+						print("Lock are release 2")
 					# send Gcode Pause
 					print("1 ---DWell pause")
 					self.sendGcode("G4")
@@ -279,7 +289,10 @@ class typeOnePrinter(virtualPrinter):
 					#update current position machine one
 					self.updateCurrentPosition(self.getPositionFromGcodeRecive())
 					#release lock
-					lockOne.release()
+					try:
+						lockOne.release()
+					except:
+						print("Lock are release 3")
 					#run normal process
 					print("1 ---Running in normal process")
 
@@ -304,7 +317,7 @@ class typeTwoPrinter(virtualPrinter):
 	gCodeSend = ""
 	PositionFromGcodeRecive = currentPosition
 	numberOfLayer = 1
-	zPosition = 0
+	zPosition = 0.0
 	connection = None
 	port = "COM8"
 	baudrate = 115200
@@ -316,33 +329,48 @@ class typeTwoPrinter(virtualPrinter):
 	
 	def getFirstFriendPrinter(self,printer):
 			self.firstFriendPrinter = printer
-		
+	def zSynchronous(self):
+		if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) >= 1):
+			saveposition = self.currentPosition
+			while((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) >= 1):
+				# goto X0Y0
+				self.sendGcode("G0 X0 Y0")
+				self.sendGcode("M400")
+				self.updateCurrentPosition([0,0])
+				# clear priority event
+				priorityEvent.clear()
+				#emit comeback event for machine one
+				comeBackEvent.set()
+				try:
+					lockOne.release()
+				except:
+					print("Lock are release 7")
+				time.sleep(2)
+			#comeback
+			print("2 ---machine 2 comeback")
+			priorityEvent.set()
+			comeBackEvent.clear()
+			self.PositionFromGcodeRecive = saveposition
+			#time.sleep(5)
+			try:
+				lockOne.acquire()
+			except:
+				print("Lock are locked 6")
 	def run(self):
 		#read n-th Gcode Line in file
 			while self.orderGcodeLine < self.gcodeDataLen:
 				#start lock
-				lockOne.acquire()
+				try:
+					lockOne.acquire()
+				except:
+					print("Lock are locked 5")
 				self.getGcodeLine()
 				#get position from gcode recive
 				self.getPositionFromGcodeRecive()
 				print("2-numberLayer: ",self.numberOfLayer)
 				print("1-numberLayer: ",self.firstFriendPrinter.numberOfLayer)
 				# Z synchronous
-				if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
-					while(self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1:
-						# goto X0Y0
-						self.sendGcode("G0 X0 Y0")
-						saveposition = self.currentPosition
-						self.updateCurrentPosition([0,0])
-						self.sendGcode("M400")
-						lockOne.release()
-						print("a1")
-					#comeback
-					print("2 ---machine 2 comeback")
-					self.sendGcode("G0 X{} Y{}".format(saveposition[0],saveposition[1]))
-					self.sendGcode("M400")
-					self.updateCurrentPosition(saveposition)
-					lockOne.acquire()
+				self.zSynchronous()
 				#caculate distance to current other machine position
 				print("2 ---position from Gcode",self.PositionFromGcodeRecive)
 				print("2 ---One position",self.firstFriendPrinter.getCurrentPosition())
@@ -354,40 +382,31 @@ class typeTwoPrinter(virtualPrinter):
 						# Emit priority event
 						print("2 ---Emit priority event")
 						priorityEvent.set()
-						lockOne.release()
+						try:
+							lockOne.release()
+						except:
+							print("Lock are release 6")
 						# check whether machine one gone to priority position
 						reachPriorityPosition.wait()
 						self.updateCurrentPosition(self.PositionFromGcodeRecive)
-						print("2 ---Two gcode Sended",self.PositionFromGcodeRecive)
+						print("2 ---Two gcode Sended",self.gCodeRecive)
 						#send gcode
 						self.sendGcode(self.gCodeRecive)
 						self.sendGcode("M400")
 						#increase order gcode line
 						self.increaseOrderGcodeLine()
 						#start lock
-						lockOne.acquire()
+						try:
+							lockOne.acquire()
+						except:
+							print("Lock are locked 7")
 						self.getGcodeLine()
 						#get position from gcode recive
 						self.getPositionFromGcodeRecive()
 						# Z synchronous
 						print("2-numberLayer: ",self.numberOfLayer)
 						print("1-numberLayer: ",self.firstFriendPrinter.numberOfLayer)
-						if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
-							print("a")
-							while((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
-								# goto X0Y0
-								self.sendGcode("G0 X0 Y0")
-								saveposition = self.currentPosition
-								self.updateCurrentPosition([0,0])
-								self.sendGcode("M400")
-								lockOne.release()
-								print("a1")
-							#comeback
-							print("2 ---machine 2 comeback")
-							self.sendGcode("G0 X{} Y{}".format(saveposition[0],saveposition[1]))
-							self.sendGcode("M400")
-							self.updateCurrentPosition(saveposition)
-							lockOne.acquire()
+						self.zSynchronous()
 						#caculate distance to current other machine position
 						print("2 ---position from Gcode",self.PositionFromGcodeRecive)
 						print("2 ---One position",self.firstFriendPrinter.getCurrentPosition())
@@ -397,7 +416,10 @@ class typeTwoPrinter(virtualPrinter):
 					self.updateCurrentPosition(self.PositionFromGcodeRecive)
 					priorityEvent.clear()
 					#realease lock
-					lockOne.release()
+					try:
+						lockOne.release()
+					except:
+						print("Lock are release 8")
 					#send Gcode
 					print("2 ---Machine 2 is running to ",self.currentPosition)
 					self.sendGcode(self.gCodeRecive)
@@ -412,7 +434,10 @@ class typeTwoPrinter(virtualPrinter):
 					#update current position machine one
 					self.updateCurrentPosition(self.getPositionFromGcodeRecive())
 					#release lock
-					lockOne.release()
+					try:
+						lockOne.release()
+					except:
+						print("Lock are release 9")
 					#run normal process
 					print("2 ---Running in normal process")
 					#send Gocde to machine

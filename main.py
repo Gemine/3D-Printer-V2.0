@@ -55,14 +55,15 @@ onePrinter.connectToPrinter()
 #Connect Two Printer
 twoPrinter.connectToPrinter()
 
-onePrinter.sendGcode('G28')
-twoPrinter.sendGcode('G28')
-time.sleep(5)
-
-onePrinter.start()
+#onePrinter.sendGcode('G28')
+#twoPrinter.sendGcode('G28')
+#time.sleep(5)
 twoPrinter.start()
+onePrinter.start()
 
-onePrinter.join()
+
 twoPrinter.join()
+onePrinter.join()
+
 
 print(threading.enumerate())
