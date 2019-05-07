@@ -36,28 +36,28 @@ gcodeTwoDir = "Gcode/two.gcode"
 portTwo = 'COM8'
 baudrateTwo = 115200
 
-#=========================================================
+# ==============================Init printer =====================================
 
 onePrinter = virtualPrinter.typeOnePrinter(nameOne,gcodeOneDir,portOne,baudrateOne)
 twoPrinter = virtualPrinter.typeTwoPrinter(nameTwo,gcodeTwoDir,portTwo,baudrateTwo)
 
-#get gcode data 
+# get gcode data 
 onePrinter.getGcodeData()
 twoPrinter.getGcodeData()
 
 
-
+# get friend printer
 onePrinter.getFirstFriendPrinter(twoPrinter)
 twoPrinter.getFirstFriendPrinter(onePrinter)
 
-#Connect One Printer
+# Connect One Printer
 onePrinter.connectToPrinter()
 #Connect Two Printer
 twoPrinter.connectToPrinter()
 
-#onePrinter.sendGcode('G28')
-#twoPrinter.sendGcode('G28')
-#time.sleep(5)
+# onePrinter.sendGcode('G28')
+# twoPrinter.sendGcode('G28')
+# time.sleep(5)
 twoPrinter.start()
 onePrinter.start()
 
