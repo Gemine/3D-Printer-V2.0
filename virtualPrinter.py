@@ -19,7 +19,7 @@ reachPriorityPositionEvent = threading.Event()
 runningEvent = threading.Event()
 stopEvent = threading.Event()
 
-runningEvent.clear()
+runningEvent.set()
 stopEvent.set()
 priorityEvent.clear()
 comeBackEvent.clear()
@@ -194,13 +194,8 @@ class typeOnePrinter(virtualPrinter):
 	
 	################### typeOnePrinter Variable ######################
 	priority = False
-<<<<<<< HEAD
 	currentPosition = [180,360]
-	dirGcodeFile = ""
-=======
-	currentPosition = [180,300]
 	dirGcodeFile = "Gcode/one.gcode"
->>>>>>> cf332a8614b5f2cf72c416ff986fd4816d8f033f
 	gcodeData = []
 	gcodeDataLen = 0
 	orderGcodeLine = 0
