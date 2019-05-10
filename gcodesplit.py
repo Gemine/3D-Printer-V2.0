@@ -1,5 +1,5 @@
-def split():
-        sourcefile = "Gcode/3Dtryout02-4mm.gcode"
+def split(Dir):
+        sourcefile = Dir
         file1 = "Gcode/one.gcode"
         file2 = "Gcode/two.gcode"
         startcode = "Gcode/startcode.gcode"
@@ -49,4 +49,3 @@ def split():
         f1.close
         f2.close
         f.close
-split()
