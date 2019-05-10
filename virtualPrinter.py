@@ -147,7 +147,7 @@ class virtualPrinter(threading.Thread):
 		pass
 	def parking(self):
 		# M125 or M27
-		self.sendGcode("G1 X200 Y220")
+		self.sendGcode("G1 X180 Y300")
 		self.sendGcode("M400")
 	
 	def comeBack(self):
@@ -191,7 +191,7 @@ class typeOnePrinter(virtualPrinter):
 	
 	################### typeOnePrinter Variable ######################
 	priority = False
-	currentPosition = [200,220]
+	currentPosition = [180,360]
 	dirGcodeFile = ""
 	gcodeData = []
 	gcodeDataLen = 0
