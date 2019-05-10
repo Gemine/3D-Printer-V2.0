@@ -1,21 +1,8 @@
 import virtualPrinter
 import threading
 import time 
-"""printerOne = virtualPrinter.typeOnePrinter()
-printerOne.connectToPrinter()
-printerOne.run()
-for i in range(0):
-    printerOne.getGcodeFileDir("Gcode/one")
-    printerOne.getGcodeLine()
-    printerOne.getPositionFromGcodeRecive()
-    print(printerOne.PositionFromGcodeRecive)
-    a = printerOne.caculateDistanceToPoint([0,0]) 
-    b = printerOne.checkCollision(a)
-    if not b :
-        printerOne.updateCurrentPosition(printerOne.PositionFromGcodeRecive)
-        print("current")
-        print(printerOne.currentPosition)
-    printerOne.increaseOrderGcodeLine()"""
+
+
 #################### Config for Printer One #############
 # Name for Printer 1
 nameOne = "onePrinter"
