@@ -72,13 +72,13 @@ class MyTableWidget(QWidget):
 #create machine one label
         groupBox1 = QGroupBox("Machine One")
         hBox1 = QHBoxLayout()
-        #create machine one port
-        portOneButton = QLineEdit("COM7")
-        self.portOne = "COM7"
+        #create machine one port8
+        self.portOneButton = QLineEdit("COM7")
+        self.portOneButton.textChanged.connect(self.updatePortName)
         #create machine one baudrate
         baudrateOneButton = QLineEdit("115200")
         self.baudrateOne = 115200
-        hBox1.addWidget(portOneButton)
+        hBox1.addWidget(self.portOneButton)
         hBox1.addWidget(baudrateOneButton)
         groupBox1.setLayout(hBox1
         )
@@ -86,13 +86,14 @@ class MyTableWidget(QWidget):
         groupBox2 = QGroupBox("Machine Two")
         hBox2 = QHBoxLayout()
         #create machine two port
-        portTwoButton = QLineEdit("COM8")
-        self.portTwo = "COM8"
+        self.portTwoButton = QLineEdit("COM8")
+        self.portTwoButton.textChanged.connect(self.updatePortName)
+        
         #create machine two baudrate
         baudrateTwoButton = QLineEdit("115200")
         self.baudrateTwo = 115200
 
-        hBox2.addWidget(portTwoButton)
+        hBox2.addWidget(self.portTwoButton)
         hBox2.addWidget(baudrateTwoButton)
         groupBox2.setLayout(hBox2)
 
@@ -143,6 +144,10 @@ class MyTableWidget(QWidget):
         except:
             print("can not connect to machine")
             print(Exception)
+    def updatePortName(self):
+        self.portOne = str(self.portOneButton.text())
+        self.portTwo = str(self.portTwoButton.text())
+        print(self.portOne,self.portTwo)
 
     def dowork(self):
         try:
