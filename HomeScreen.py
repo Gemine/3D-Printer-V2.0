@@ -219,32 +219,21 @@ class MyTableWidget(QWidget):
         virtualPrinter.runningEvent.clear()
         print("pause")
 
-<<<<<<< HEAD
     def doSendToAll(self):
-=======
-    def sendToALL(self):
->>>>>>> db13ff960a5b7efd2ec70ec76de2352535f6d75e
         try:
             self.twoPrinter.sendGcode(str(self.generalInputCommandBox.text()))
             self.onePrinter.sendGcode(str(self.generalInputCommandBox.text()))
         except:
             print("Can not send to all")
-<<<<<<< HEAD
     
     def sendToALL(self):
         threading.Thread(target=self.doSendToAll).start()
-=======
->>>>>>> db13ff960a5b7efd2ec70ec76de2352535f6d75e
 
     def sendToOne(self):
         try:
             self.onePrinter.sendGcode(str(self.oneInputCommandBox.text()))
         except:
             print("Can not send to one")
-<<<<<<< HEAD
-=======
-            App.statusBar().showMessage('Message in statusbar.')
->>>>>>> db13ff960a5b7efd2ec70ec76de2352535f6d75e
     def sendToTwo(self):
         try:
             self.twoPrinter.sendGcode(str(self.twoInputCommandBox.text()))

@@ -37,6 +37,8 @@ midFrame.pack(side = TOP, fill = X)
 #Input Box for both
 inputBoxForBoth = Entry(midFrame,width = 50)
 inputBoxForBoth.place(x = 350,y = 20)
+
+sendToBothBotton = Button(midFrame,test)
 ################ BOTTOM FRAME ################
 bottomFrame = Frame(root,bg = "green",width = 600,height = 200)
 bottomFrame.pack(side = TOP, fill = X)
