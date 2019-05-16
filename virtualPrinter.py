@@ -211,7 +211,7 @@ class typeOnePrinter(virtualPrinter):
 	##################################################################
 
 	def __init__(self,name,gcodeFileDir,serialPort,baudrate):
-		virtualPrinter.__init__(self,name,gcodeFileDir,serialPort,baudrate)
+		virtualPrinter.__init__(self,name,gcodeFileDir,serialPort = self.port,baudrate = self.baudrate)
 		pass
 
 	def getFirstFriendPrinter(self,printer):
@@ -333,7 +333,7 @@ class typeTwoPrinter(virtualPrinter):
 	##################################################################
 
 	def __init__(self,name,gcodeFileDir,serialPort,baudrate):
-		virtualPrinter.__init__(self,name,gcodeFileDir,serialPort,baudrate)
+		virtualPrinter.__init__(self,name,gcodeFileDir,serialPort = self.port,baudrate = self.baudrate)
 		pass
 	
 	def getFirstFriendPrinter(self,printer):
