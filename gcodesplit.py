@@ -29,6 +29,8 @@ def split(Dir):
                 elif x[0:2] == 'T1':
                         #switch to copy to file box2
                         flag = 2
+                elif x[0:2] == 'T2':
+                        flag = 0
                 else:
                         if flag == 1:
                                 # copy to box 1

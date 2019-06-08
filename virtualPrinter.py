@@ -134,6 +134,7 @@ class virtualPrinter(threading.Thread):
 		return [X_distance,Y_distance]
 	def checkCollision(self,distanceXY):
 		result = False
+		#d = math.sqrt(distanceXY[0]*distanceXY[0]+distanceXY[1]*distanceXY[1])
 		if distanceXY[1] < 100:
     			result = True
 		return result
@@ -150,7 +151,7 @@ class virtualPrinter(threading.Thread):
 		pass
 	def parking(self):
 		# M125 or M27
-		self.sendGcode("G1 X180 Y300")
+		self.sendGcode("G1 X300 Y5")
 		self.sendGcode("M400")
 	
 	def comeBack(self):
@@ -194,7 +195,7 @@ class typeOnePrinter(virtualPrinter):
 	
 	################### typeOnePrinter Variable ######################
 	priority = False
-	currentPosition = [180,300]
+	currentPosition = [0,0]
 	dirGcodeFile = "Gcode/one.gcode"
 	gcodeData = []
 	gcodeDataLen = 0
@@ -317,7 +318,7 @@ class typeOnePrinter(virtualPrinter):
 
 class typeTwoPrinter(virtualPrinter):
 	################### typeOnePrinter Variable ######################
-	currentPosition = [0,0]
+	currentPosition = [0,500]
 	dirGcodeFile = "Gcode/two.gcode"
 	gcodeData = []
 	gcodeDataLen = 0
@@ -339,13 +340,13 @@ class typeTwoPrinter(virtualPrinter):
 	def getFirstFriendPrinter(self,printer):
 			self.firstFriendPrinter = printer
 	def zSynchronous(self):
-		if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) >= 1):
+		if ((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
 			saveposition = self.currentPosition
-			while((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) >= 1):
+			while((self.numberOfLayer - self.firstFriendPrinter.numberOfLayer) > 1):
 				# goto X0Y0
-				self.sendGcode("G0 X0 Y0")
+				self.sendGcode("G0 X0 Y500")
 				self.sendGcode("M400")
-				self.updateCurrentPosition([0,0])
+				self.updateCurrentPosition([0,500])
 				# clear priority event
 				priorityEvent.clear()
 				#emit comeback event for machine one
@@ -357,7 +358,7 @@ class typeTwoPrinter(virtualPrinter):
 				time.sleep(2)
 			#comeback
 			print("2 ---machine 2 comeback")
-			priorityEvent.set()
+			#priorityEvent.set()
 			comeBackEvent.clear()
 			self.PositionFromGcodeRecive = saveposition
 			#time.sleep(5)
@@ -365,6 +366,27 @@ class typeTwoPrinter(virtualPrinter):
 				lockOne.acquire()
 			except:
 				print("Lock are locked 6")
+	def getPositionFromGcode(self,gcodeData):
+		try:
+			Gcode = re.split(r"\s",gcodeData)
+		except:
+			print("Dont have Gcode")
+		if len(Gcode) > 3 and (Gcode[0] == "G1" or Gcode[0] == "G0"):
+			if Gcode[1][0] == 'X':
+				PositionFromGcodeRecive[0] = self.num(Gcode[1][1:])
+			if Gcode[2][0] == 'Y':
+				PositionFromGcodeRecive[1] = self.num(Gcode[2][1:])
+		if "Z" in Gcode and not re.search(r"\A;",Gcode):
+			pass
+		
+		return PositionFromGcodeRecive
+	def checkCollisionThreeNextGcode(self):
+		result = True
+		firstPosition = self.getPositionFromGcode(self.gcodeData[self.orderGcodeLine+1])
+		secondPosition = self.getPositionFromGcode(self.gcodeData[self.orderGcodeLine+2])
+		threePosition = self.getPositionFromGcode(self.gcodeData[self.orderGcodeLine+3])
+		
+		return result
 	def run(self):
 		#read n-th Gcode Line in file
 			while self.orderGcodeLine < self.gcodeDataLen:
@@ -436,8 +458,12 @@ class typeTwoPrinter(virtualPrinter):
 						self.sendGcode("M400")
 						#increase Gcode number line
 						self.increaseOrderGcodeLine()
-						#emit comeback event
-						comeBackEvent.set()
+						# emit comeback event
+						# check weather two next Gcode is collision
+						if "two next Gcode is collision":
+						
+						else:
+							comeBackEvent.set()
 					else:
 						#update current position machine one
 						self.updateCurrentPosition(self.getPositionFromGcodeRecive())

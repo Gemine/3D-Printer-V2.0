@@ -15,8 +15,8 @@ class App(QMainWindow):
         self.title = 'M3 - 3D Printer Control'
         self.left = 0
         self.top = 0
-        self.width = 640
-        self.height = 480
+        self.width = 1024
+        self.height = 600+100
         self.setWindowTitle(self.title)
         
         self.setIconSize(QSize(1,1))
@@ -97,13 +97,13 @@ class MyTableWidget(QWidget):
         baudrateOneButton = QLineEdit("115200")
         self.baudrateOne = 115200
         #create machine one send comman box
-        self.oneInputCommanBox = QLineEdit("SEND TO ONE")
+        self.oneInputCommandBox = QLineEdit("SEND TO ONE")
         oneInputSendButton = QPushButton("SEND")
         oneInputSendButton.clicked.connect(self.sendToOne)
 
         hBox1.addWidget(self.portOneButton,0,0)
         hBox1.addWidget(baudrateOneButton,0,1)
-        hBox1.addWidget(self.oneInputCommanBox,1,0,1,2)
+        hBox1.addWidget(self.oneInputCommandBox,1,0,1,2)
         hBox1.addWidget(oneInputSendButton,1,3)
         groupBox1.setLayout(hBox1)
 #create machine two group
@@ -118,14 +118,14 @@ class MyTableWidget(QWidget):
         baudrateTwoButton = QLineEdit("115200")
         self.baudrateTwo = 115200
         #create machine one send comman box
-        self.twoInputCommanBox = QLineEdit("SEND TO TWO")
+        self.twoInputCommandBox = QLineEdit("SEND TO TWO")
         twoInputSendButton = QPushButton("SEND")
         twoInputSendButton.clicked.connect(self.sendToTwo)
 
 
         hBox2.addWidget(self.portTwoButton,0,0)
         hBox2.addWidget(baudrateTwoButton,0,1)
-        hBox2.addWidget(self.twoInputCommanBox,1,0,1,2)
+        hBox2.addWidget(self.twoInputCommandBox,1,0,1,2)
         hBox2.addWidget(twoInputSendButton,1,3)
         groupBox2.setLayout(hBox2)
 
@@ -159,7 +159,7 @@ class MyTableWidget(QWidget):
             self.gcodeDirTextBox.setText(fileName)
         self.splitGcode()
     @pyqtSlot()
-    def connect(self):
+    def doConnect(self):
         try:
             print("connect to machine")
             self.onePrinter = virtualPrinter.typeOnePrinter("nameOne","Gcode/one.gcode",self.portOne,self.baudrateOne)
@@ -184,12 +184,16 @@ class MyTableWidget(QWidget):
         except:
             print("can not connect to machine")
             print(Exception)
+    def connect(self):
+         x = threading.Thread(target = self.doConnect)
+         x.daemon = True
+         x.start()
     def updatePortName(self):
         self.portOne = str(self.portOneButton.text())
         self.portTwo = str(self.portTwoButton.text())
         print(self.portOne,self.portTwo)
 
-    def dowork(self):
+    def doMachinePrint(self):
         try:
             print("3D printer print")
             virtualPrinter.runningEvent.set()
@@ -205,7 +209,8 @@ class MyTableWidget(QWidget):
     @pyqtSlot()
     def machinePrint(self):
         
-        x = threading.Thread(target=self.dowork)
+        x = threading.Thread(target=self.doMachinePrint)
+        x.daemon = True
         x.start()
 
     def splitGcode(self):
@@ -219,37 +224,34 @@ class MyTableWidget(QWidget):
         virtualPrinter.runningEvent.clear()
         print("pause")
 
-<<<<<<< HEAD
     def doSendToAll(self):
-=======
-    def sendToALL(self):
->>>>>>> db13ff960a5b7efd2ec70ec76de2352535f6d75e
         try:
             self.twoPrinter.sendGcode(str(self.generalInputCommandBox.text()))
             self.onePrinter.sendGcode(str(self.generalInputCommandBox.text()))
         except:
             print("Can not send to all")
-<<<<<<< HEAD
     
     def sendToALL(self):
-        threading.Thread(target=self.doSendToAll).start()
-=======
->>>>>>> db13ff960a5b7efd2ec70ec76de2352535f6d75e
-
-    def sendToOne(self):
+        x = threading.Thread(target=self.doSendToAll)
+        x.start()
+    def doSendToOne(self):
         try:
             self.onePrinter.sendGcode(str(self.oneInputCommandBox.text()))
         except:
             print("Can not send to one")
-<<<<<<< HEAD
-=======
-            App.statusBar().showMessage('Message in statusbar.')
->>>>>>> db13ff960a5b7efd2ec70ec76de2352535f6d75e
-    def sendToTwo(self):
+    def sendToOne(self):
+        x = threading.Thread(target=self.doSendToOne)
+        x.daemon = True
+        x.start()
+    def doSendToTwo(self):
         try:
             self.twoPrinter.sendGcode(str(self.twoInputCommandBox.text()))
         except:
             print("Can not send to two")
+    def sendToTwo(self):
+        x = threading.Thread(target=self.doSendToTwo)
+        x.daemon = True
+        x.start()
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App()
