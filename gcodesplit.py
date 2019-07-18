@@ -34,18 +34,36 @@ def split(Dir):
                 else:
                         if flag == 1:
                                 # copy to box 1
-                                f1.write(x)
+                                
                                 if x[0:4] == "G1 Z":
+                                        f1.write(x)
                                         f2.write(x)
-                                #print(x)
-                                #f1.close
+                                elif x[0:4] == "M104":
+                                        f2.write('\n')
+                                        f2.write(x[0:9])
+                                        f2.write('\n')
+                                        f1.write(x[0:9])
+                                        f1.write('\n')
+                                else:
+                                        f1.write(x)
+                                        
                         elif flag == 2:
                                 # copy to box2
                                 #f2 = open(file2, "a")
-                                f2.write(x)
+                                
                                 if x[0:4] == "G1 Z":
                                         f1.write(x)
-                                #f2.close
+                                        f2.write(x)
+                                        
+                                elif x[0:4] == "M104":
+                                        f1.write('\n')
+                                        f1.write(x[0:9])
+                                        f1.write('\n')
+                                        f2.write(x[0:9])
+                                        f2.write('\n')
+                                else:
+                                        f2.write(x)
+                                        
                         else:
                                 pass
         f1.close

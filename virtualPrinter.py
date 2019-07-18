@@ -255,14 +255,20 @@ class typeOnePrinter(virtualPrinter):
 					except:
 						print("Lock are release 1")
 					comeBackEvent.wait()
-					#lockOne.acquire()
+					try:
+						lockOne.acquire()
+					except:
+						print("can not acquire lock one")
 					#Comeback
 					print("1 ---machine 1 comeback")
 					self.sendGcode("G0 X{} Y{}".format(self.currentPosition[0],self.currentPosition[1]))
 					self.sendGcode("M400")
 					#clear comeback event
 					comeBackEvent.clear()
-					#lockOne.release()
+					try:
+						lockOne.release()
+					except:
+						print("Can not release lock one ")
 
 				else:
 					#if NOT priority situation
@@ -355,10 +361,10 @@ class typeTwoPrinter(virtualPrinter):
 					lockOne.release()
 				except:
 					print("Lock are release 7")
-				time.sleep(2)
+				#time.sleep(2)
 			#comeback
 			print("2 ---machine 2 comeback")
-			#priorityEvent.set()
+			priorityEvent.set()
 			comeBackEvent.clear()
 			self.PositionFromGcodeRecive = saveposition
 			#time.sleep(5)
@@ -367,6 +373,7 @@ class typeTwoPrinter(virtualPrinter):
 			except:
 				print("Lock are locked 6")
 	def getPositionFromGcode(self,gcodeData):
+		PositionFromGcodeRecive = []
 		try:
 			Gcode = re.split(r"\s",gcodeData)
 		except:
@@ -459,11 +466,12 @@ class typeTwoPrinter(virtualPrinter):
 						#increase Gcode number line
 						self.increaseOrderGcodeLine()
 						# emit comeback event
+						comeBackEvent.set()
 						# check weather two next Gcode is collision
-						if "two next Gcode is collision":
+						# if "two next Gcode is collision":
 						
-						else:
-							comeBackEvent.set()
+						# else:
+						# 	comeBackEvent.set()
 					else:
 						#update current position machine one
 						self.updateCurrentPosition(self.getPositionFromGcodeRecive())

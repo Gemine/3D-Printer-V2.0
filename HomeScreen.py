@@ -1,13 +1,15 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget,QVBoxLayout,QHBoxLayout,QGridLayout,QFileDialog,QLabel,QGroupBox,QLineEdit
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon,QPalette
 from PyQt5.QtCore import pyqtSlot,QSize
 from PyQt5 import Qt,QtCore
 import gcodesplit
 import virtualPrinter
 #from serialSendGcode import serialSendGcode
 import threading
-import time 
+import time
+
+
 class App(QMainWindow):
 
     def __init__(self):
@@ -16,23 +18,24 @@ class App(QMainWindow):
         self.left = 0
         self.top = 0
         self.width = 1024
-        self.height = 600+100
+        self.height = 600
         self.setWindowTitle(self.title)
+        #self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         
         self.setIconSize(QSize(1,1))
         self.setWindowIcon(QIcon("Media/icon/1024px-M3_icon.svg.png"))
         self.setGeometry(self.left, self.top, self.width, self.height)
-        
         self.table_widget = MyTableWidget(self)
         self.setCentralWidget(self.table_widget)
         self.show()
 
-        
 class MyTableWidget(QWidget):
     
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
         self.layout = QVBoxLayout(self)
+        #self.setStyleSheet("background-color:grey")
+        self.setAutoFillBackground(True)
         
         # Initialize tab screen
         self.tabs = QTabWidget()
@@ -143,8 +146,6 @@ class MyTableWidget(QWidget):
         self.setLayout(self.layout)
 
 
-
-
 ################################## ALL SLOT HERE ####################################################
 
     @pyqtSlot()
@@ -193,24 +194,29 @@ class MyTableWidget(QWidget):
         self.portTwo = str(self.portTwoButton.text())
         print(self.portOne,self.portTwo)
 
-    def doMachinePrint(self):
+    def doMachineOnePrint(self):
         try:
             print("3D printer print")
             virtualPrinter.runningEvent.set()
-            self.twoPrinter.start()
             self.onePrinter.start()
-            self.twoPrinter.join()
             self.onePrinter.join()
-            
-
         except:
             print("Connect before print")
-
+    def doMachineTwoPrint(self):
+        try:
+            print("3D printer print")
+            self.twoPrinter.start()
+            self.twoPrinter.join()
+        except:
+            print("Connect before print")
     @pyqtSlot()
     def machinePrint(self):
         
-        x = threading.Thread(target=self.doMachinePrint)
+        x = threading.Thread(target=self.doMachineOnePrint)
+        y = threading.Thread(target=self.doMachineTwoPrint)
         x.daemon = True
+        y.daemon = True
+        y.start()
         x.start()
 
     def splitGcode(self):
