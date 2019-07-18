@@ -238,18 +238,28 @@ class MyTableWidget(QWidget):
             print("Can not send to all")
     
     def sendToALL(self):
+<<<<<<< HEAD
         x = threading.Thread(target=self.doSendToAll)
         x.start()
     def doSendToOne(self):
+=======
+        threading.Thread(target=self.doSendToAll).start()
+
+    def sendToOne(self):
+>>>>>>> a5d5df06eb17eafd8106deaab30fdf07262e23ae
         try:
             self.onePrinter.sendGcode(str(self.oneInputCommandBox.text()))
         except:
             print("Can not send to one")
+<<<<<<< HEAD
     def sendToOne(self):
         x = threading.Thread(target=self.doSendToOne)
         x.daemon = True
         x.start()
     def doSendToTwo(self):
+=======
+    def sendToTwo(self):
+>>>>>>> a5d5df06eb17eafd8106deaab30fdf07262e23ae
         try:
             self.twoPrinter.sendGcode(str(self.twoInputCommandBox.text()))
         except:
